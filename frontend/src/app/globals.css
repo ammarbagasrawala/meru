@@ -1,0 +1,257 @@
+@import "tailwindcss";
+
+/* Lock the app to light mode. By default Tailwind v4 activates the `dark:`
+ * variant via `prefers-color-scheme: dark`, so a user whose OS is in dark
+ * mode would see every `dark:text-zinc-100` fire — turning body text white
+ * on the paper background. We don't ship a dark theme (the palette is
+ * intentionally light-first per the design brief), so we rebind the dark
+ * selector to a class that's never applied. All `dark:*` rules become
+ * inert; the light palette wins on every OS. */
+@custom-variant dark (&:where(.never-dark, .never-dark *));
+
+/*
+ * Provenant — light-first, document-oriented palette.
+ * Eight semantic tokens; everything else inherits from these.
+ *
+ *   Soft Paper      #F7F6F3   main background
+ *   Warm White      #FFFFFF   card surface
+ *   Deep Slate      #1F2937   primary text
+ *   Muted Slate     #6B7280   secondary text / captions
+ *   Mist Gray       #E5E7EB   borders / hairlines
+ *   Mineral Blue    #5B7FFF   primary accent (links, CTA, interactive)
+ *   Soft Sage       #6FA58A   success / verified
+ *   Muted Amber     #C9A86A   warning
+ *
+ * Design tone: Apple security docs · Stripe documentation · Linear light mode.
+ * The quieter the surface, the stronger the trust.
+ */
+:root {
+  --paper:          #F7F6F3;
+  --surface:        #FFFFFF;
+  --ink:            #1F2937;
+  --ink-muted:      #6B7280;
+  --ink-faint:      #9CA3AF;
+  /* Alpha overlays of --ink. Apple's iOS/macOS hierarchy uses alpha on a
+   * single label colour rather than separate greys, so secondary text auto-
+   * tints on any background (sage card, mineral chip, amber banner) without
+   * special-casing. See docs/research/apple-design/01-HIG-foundations.md §1. */
+  --ink-alpha-90:   rgba(31, 41, 55, 0.90);
+  --ink-alpha-60:   rgba(31, 41, 55, 0.60);
+  --ink-alpha-40:   rgba(31, 41, 55, 0.40);
+  --ink-alpha-25:   rgba(31, 41, 55, 0.25);
+  --hairline:       #E5E7EB;
+  --hairline-soft:  color-mix(in srgb, #1F2937 8%, transparent);
+
+  --accent:         #5B7FFF;
+  --accent-soft:    color-mix(in srgb, #5B7FFF 10%, transparent);
+  --accent-strong:  #4366E6;
+
+  --success:        #6FA58A;
+  --success-soft:   color-mix(in srgb, #6FA58A 12%, transparent);
+  --success-strong: #5F9276;
+
+  --warning:        #C9A86A;
+  --warning-soft:   color-mix(in srgb, #C9A86A 14%, transparent);
+  --warning-strong: #8C7138;
+
+  --background:     var(--paper);
+  --foreground:     var(--ink);
+
+  /* Radii — Apple macOS softness blended with LoKey's component rules.
+   * Buttons NEVER fully rounded (use --radius-md). Chips ALWAYS pill (20px).
+   * Avatars/circular icon buttons full. */
+  --radius-sm:      6px;   /* small icon containers, checkbox */
+  --radius-md:      10px;  /* buttons, inputs, dropdowns, default cards */
+  --radius-lg:      14px;  /* large cards, modals */
+  --radius-xl:      18px;  /* hero containers, sheets */
+
+  /* Elevation — LoKey's gentle, document-oriented shadows. Cards have no
+   * shadow by default; shadow appears on hover or for dropdowns/modals. */
+  --elevation-sm:   0 4px 16px 0 rgba(31, 41, 55, 0.06);
+  --elevation-md:   0 8px 32px 0 rgba(31, 41, 55, 0.10);
+  --elevation-hairline: 0 0 0 1px var(--hairline);
+}
+
+/*
+ * Tailwind v4 theme inline mapping. We override the named scales the existing
+ * components reference (zinc / emerald / amber) so the new palette propagates
+ * without touching every JSX file.
+ */
+@theme inline {
+  --color-background: var(--paper);
+  --color-foreground: var(--ink);
+  --color-accent:     var(--accent);
+
+  /* Font stack: Inter is the workhorse body + UI font.
+   * Coolvetica is restricted to brand surfaces via `.font-brand` utility
+   * (see below) — wordmarks, hero H1, verifier title, sidebar logo.
+   * The body text everywhere else uses Inter for readability + tabular
+   * numerics + CJK coverage. */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Neutral scale — rebound to alpha overlays of --ink for proper hierarchy
+   * on any background (per Apple HIG). 200/300/400 stay as Mist Gray hex
+   * since they're used for borders/dividers, not text. */
+  --color-zinc-50:  #F7F6F3;
+  --color-zinc-100: #FFFFFF;
+  --color-zinc-200: #E5E7EB;
+  --color-zinc-300: #E5E7EB;
+  --color-zinc-400: rgba(31, 41, 55, 0.40);
+  --color-zinc-500: rgba(31, 41, 55, 0.60);
+  --color-zinc-600: rgba(31, 41, 55, 0.70);
+  --color-zinc-700: rgba(31, 41, 55, 0.85);
+  --color-zinc-800: #1F2937;
+  --color-zinc-900: #1F2937;
+
+  --color-emerald-50:  color-mix(in srgb, #5B7FFF 5%, transparent);
+  --color-emerald-100: color-mix(in srgb, #5B7FFF 10%, transparent);
+  --color-emerald-200: color-mix(in srgb, #5B7FFF 20%, transparent);
+  --color-emerald-300: #93AAFF;
+  --color-emerald-400: #7B97FF;
+  --color-emerald-500: #5B7FFF;
+  --color-emerald-600: #5B7FFF;
+  --color-emerald-700: #4366E6;
+  --color-emerald-800: #2A4ECC;
+  --color-emerald-900: #1B3AAA;
+
+  --color-amber-50:  color-mix(in srgb, #C9A86A 10%, transparent);
+  --color-amber-100: color-mix(in srgb, #C9A86A 18%, transparent);
+  --color-amber-200: color-mix(in srgb, #C9A86A 35%, transparent);
+  --color-amber-300: #DCC295;
+  --color-amber-500: #C9A86A;
+  --color-amber-600: #B5934F;
+  --color-amber-700: #8C7138;
+  --color-amber-800: #6F5828;
+  --color-amber-900: #5A451C;
+
+  --color-sage-50:  color-mix(in srgb, #6FA58A 8%, transparent);
+  --color-sage-100: color-mix(in srgb, #6FA58A 14%, transparent);
+  --color-sage-300: #9FC4B0;
+  --color-sage-500: #6FA58A;
+  --color-sage-600: #5F9276;
+  --color-sage-700: #4F7E62;
+
+  --color-red-50:  #FEF2F2;
+  --color-red-200: #FECACA;
+  --color-red-500: #DC2626;
+  --color-red-600: #B91C1C;
+  --color-red-700: #991B1B;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  /* Inter is the body/UI workhorse. Coolvetica is brand-only via `.font-brand`. */
+  font-family: var(--font-inter), ui-sans-serif, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: 400; /* Body weight per Apple HIG; LoKey's 500-as-default is
+                       too heavy for a calm, document register. */
+  /* Inter's iOS-like glyph variants. Older Safari requires explicit "1"
+   * values; without them the feature is silently ignored.
+   *   cv11 → straight-sided ‘1’ (Apple-style numeric)
+   *   ss01 → open digits ‘4’ ‘6’ ‘9’
+   *   ss03 → curved-leg ‘l’ to distinguish from ‘1’
+   *   cv02 → single-storey ‘g’
+   *   ‘calt’ contextual alternates on for ligatures. */
+  font-feature-settings: "cv11" 1, "ss01" 1, "ss03" 1, "cv02" 1, "calt" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.005em;
+}
+
+/* Brand font utility — Coolvetica, used ONLY on brand surfaces:
+ *   • "Meru" wordmark in sidebar + mobile header
+ *   • Hero H1 / verifier H1 / home-page brand headline
+ *   • Logo-adjacent text
+ * Body/UI text everywhere else stays on Inter. Restricting Coolvetica to
+ * these surfaces keeps the brand recognisable without sacrificing body
+ * readability or numeric/CJK coverage. */
+.font-brand {
+  font-family: var(--font-coolvetica), var(--font-inter), ui-sans-serif,
+    sans-serif;
+  letter-spacing: 0;
+}
+
+/* Tabular numerals everywhere a digit might be aligned in a stack —
+ * timestamps, transaction hashes, prices, page counters. Apple flips
+ * `tnum` on for these contexts via system text style; we do it explicitly. */
+.tabular,
+code,
+kbd,
+samp,
+pre {
+  font-feature-settings: "tnum" 1, "zero" 1, "calt" 1;
+}
+
+/* Apple title hierarchy with LoKey weight rules. Headings are 600
+ * (semibold) by default — Apple's Large Title weight on light bg.
+ * Use 700 only on numeric stat values (LoKey rule). */
+h1 {
+  font-weight: 600;
+  letter-spacing: -0.022em;
+}
+h2 {
+  font-weight: 600;
+  letter-spacing: -0.018em;
+}
+h3 {
+  font-weight: 600;
+  letter-spacing: -0.014em;
+}
+h4 {
+  font-weight: 600;
+  letter-spacing: -0.011em;
+}
+
+/* Elevation utility classes — apply LoKey's gentle shadows by name. */
+.elevation-sm {
+  box-shadow: var(--elevation-sm);
+}
+.elevation-md {
+  box-shadow: var(--elevation-md);
+}
+.elevation-hairline {
+  box-shadow: var(--elevation-hairline);
+}
+
+/*
+ * HashChip — monospaced inline identifier. Quieter than a chip; almost reads
+ * as code, which is the document-oriented register we want. Hairline border
+ * at 25% accent so it doesn't ring.
+ */
+.hash-chip {
+  font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--accent-strong);
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+/* Slim scrollbars in the sidebar and chat thread. */
+.thin-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.thin-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--ink-muted) 30%, transparent);
+  border-radius: 4px;
+}
+.thin-scroll::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--ink-muted) 45%, transparent);
+}
+
+/* Subtle focus ring — accent-tinted, never neon. */
+*:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}

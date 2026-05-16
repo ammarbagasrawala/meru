@@ -1,0 +1,99 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Hardhat / Solidity build
+contracts/artifacts/
+contracts/cache/
+contracts/typechain-types/
+contracts/coverage/
+contracts/coverage.json
+
+# Next.js
+.next/
+out/
+build/
+
+# Env — never commit, but keep examples
+.env
+.env.local
+.env.development
+.env.production
+.env.*.local
+!.env.example
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS / IDE
+.DS_Store
+*.pem
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Test artefacts
+coverage/
+
+# Deployment notes (may include addresses we want public; uncomment if you also have secret notes)
+# deployments/
+
+# TS build
+*.tsbuildinfo
+next-env.d.ts
+
+# Hardhat-deploy
+deployments/localhost/
+deployments/hardhat/
+
+# Private keys / wallet files
+*.key
+keystore/
+
+# Personal artefacts — internal-only, not part of the public artifact
+# These exist locally for sprint-tracking but are not load-bearing for the
+# public README / submission. Add anything personal here.
+MENTOR-REVIEW.md
+data/
+
+# Encrypted on-disk caches (regenerated at runtime)
+**/corpus-text-cache.json.enc
+
+# Research notes — kept local until consolidated. Reintroduce when ready.
+docs/research/
+
+# Internal-only docs (X drafts, pitch deck draft, demo recording fallback
+# tree). Their substance lives in PRODUCTION-VISION.md + HACKATHON-MVP.md in
+# repo-ready form; the originals reference internal mentor-review artifacts.
+docs/X-POST-DRAFTS.md
+docs/PITCH-DECK.md
+docs/DEMO-FALLBACK.md
+
+# Source asset folders — the *built* outputs of these live in
+# frontend/public/ and frontend/src/fonts/ where the app actually uses them.
+# The source folders contain redundant copies and (for Coolvetica) a vendor
+# EULA PDF that we don't redistribute.
+favicon/
+coolvetica/
+favicon.zip
+coolvetica.zip
+
+# macOS metadata
+.DS_Store
+**/.DS_Store
+
+# Local-only personal runbook artefacts
+runbook-*.local.md
