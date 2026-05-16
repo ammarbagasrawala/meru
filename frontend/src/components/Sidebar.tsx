@@ -126,7 +126,7 @@ export default function Sidebar({ open, onClose }: { open: boolean; onClose: () 
             <ConnectButton />
           </div>
           <div className="text-[10px] text-zinc-500 px-1 leading-relaxed">
-            Track 5 · 0G APAC Hackathon · MIT
+            Confidential AI on 0G · MIT
           </div>
         </div>
       </aside>

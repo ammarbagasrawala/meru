@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AlertTriangle, X } from "lucide-react";
 import { Icon } from "./Icon";
 
@@ -10,29 +10,38 @@ import { Icon } from "./Icon";
  * Honesty surface: the TEE attestation signer in v1 is the deployer wallet
  * (`SERVER_PRIVATE_KEY`'s address), not an enclave-generated key. This is
  * the single most important "we know, you knew first" signal we can put in
- * the UI before a sharp judge spots it on the explorer.
+ * the UI before a careful reviewer spots it on the explorer.
  *
- * Renders when NEXT_PUBLIC_DEMO_MODE === "1" (default in hackathon-demo
- * deployments). Hide via NEXT_PUBLIC_DEMO_MODE="0" once Level 3 is wired
- * (enclave-generated TEE signer registered on-chain).
+ * Renders when NEXT_PUBLIC_DEMO_MODE === "1" (default in demo deployments).
+ * Hide via NEXT_PUBLIC_DEMO_MODE="0" once Level 3 is wired (enclave-generated
+ * TEE signer registered on-chain).
  *
  * Dismissible per-session — once you've acknowledged the banner, it gets
  * out of your way and stays out until the tab is closed. Acknowledgement
  * lives in `sessionStorage`, not `localStorage`, because we want every new
  * tab to see the banner once.
+ *
+ * SSR-safe dismissal: initial state is a deterministic `false` so the server
+ * and the client's first render emit the same DOM (server can't see
+ * sessionStorage). The previously-dismissed flag is then read in `useEffect`
+ * after mount, which triggers a follow-up render that hides the banner.
+ * This is the standard React pattern for client-only state in SSR pages.
  */
 const STORAGE_KEY = "meru:demo-banner:dismissed";
 
 export default function DemoModeBanner() {
   const enabled = (process.env.NEXT_PUBLIC_DEMO_MODE ?? "1") === "1";
-  const [dismissed, setDismissed] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
+  const [dismissed, setDismissed] = useState<boolean>(false);
+
+  useEffect(() => {
     try {
-      return sessionStorage.getItem(STORAGE_KEY) === "1";
+      if (sessionStorage.getItem(STORAGE_KEY) === "1") {
+        setDismissed(true);
+      }
     } catch {
-      return false;
+      /* sessionStorage unavailable in some privacy modes — non-fatal. */
     }
-  });
+  }, []);
 
   if (!enabled || dismissed) return null;
 

@@ -96,7 +96,7 @@ export default function HomePage() {
          laptop heights ~770-820px after Shell chrome (top bars + banners). */}
       <section className="flex flex-col items-center justify-center text-center py-6 sm:py-8 min-h-0 overflow-y-auto thin-scroll">
         <div className="text-[11px] uppercase tracking-[0.16em] text-zinc-500 font-medium mb-3">
-          Track 5 · Privacy & Sovereign Infrastructure
+          Confidential AI · Audit Substrate on 0G
         </div>
         <h1 className="font-brand text-[44px] sm:text-[56px] font-semibold mb-3 text-zinc-900 leading-none">
           Meru

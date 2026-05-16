@@ -197,7 +197,7 @@
       <p>
         <strong>What this page does:</strong> queries the 0G Aristotle RPC at
         <code class="hash">https://evmrpc.0g.ai</code> and the Sepolia RPC at
-        <code class="hash">https://rpc.sepolia.org</code> for the on-chain audit data
+        <code class="hash">https://ethereum-sepolia-rpc.publicnode.com</code> for the on-chain audit data
         bound to the provided <code class="hash">tokenId</code>. It then recomputes
         whether the bundle hash matches and whether the same hash is present on the
         mirror. <strong>No call leaves your browser to a Meru server.</strong>
@@ -224,30 +224,32 @@
     // unmodifiable-once-served, and clearly trust-rooted in the chains themselves.
 
     const ZG_RPC      = "https://evmrpc.0g.ai";
-    const SEP_RPC     = "https://rpc.sepolia.org";
+    // Public Sepolia RPC. rpc.sepolia.org has been intermittently 404-ing — using a
+    // higher-availability public endpoint. Any reader can swap this for their own.
+    const SEP_RPC     = "https://ethereum-sepolia-rpc.publicnode.com";
     const ZG_EXPLORER = "https://chainscan.0g.ai";
     const SEP_EXPLORER = "https://sepolia.etherscan.io";
 
     const PROVENANT_ADDR = "0xA8296DfF7C2faD1170e880d71aF92B2F201D30C5";
     const READER_ADDR    = "0xA8296DfF7C2faD1170e880d71aF92B2F201D30C5";
 
-    // 4-byte selectors. These are the function signatures from Provenant.sol.
-    //   corpusOf(uint256)       → 0x14c3a8e6
-    //   inferenceCountOf(uint256) → 0x2dcf3aa7
-    //   inferenceAt(uint256,uint256) → 0x39e29df8
-    // (Computed via keccak256("name(args)").slice(0,10). We don't trust these
-    //  selectors blindly — at runtime we re-derive them from the canonical
-    //  function strings via a known-good keccak256 implementation.)
+    // 4-byte selectors. Each is keccak256("name(args)").slice(0,10) over the
+    // canonical function signature from the deployed contract source.
+    //   corpusOf(uint256)             → 0x98df8a35   (Provenant.sol)
+    //   inferenceCountOf(uint256)     → 0x847385cd   (Provenant.sol)
+    //   inferenceAt(uint256,uint256)  → 0x27bbb882   (Provenant.sol)
+    //   isMirrored(bytes32)           → 0xe12a75c4   (ProvenantReader.sol)
     //
-    // For the hackathon submission we hard-code the most common selectors we
-    // need and verify by also reading well-known event topics. A future
-    // version of this widget could include ethers-from-CDN for richer ABI
-    // handling — but the explicit eth_call route below is what makes the
-    // "no SDK in the loop" claim true.
+    // The hard-coded selectors keep this file dependency-free: no SDK in the
+    // loop, no CDN call, no npm install. Anyone can re-derive each one with
+    // a single line, e.g.:
+    //   node -e "console.log(require('ethers').id('inferenceAt(uint256,uint256)').slice(0,10))"
+    //   cast sig "inferenceAt(uint256,uint256)"
     const SELECTORS = {
-      corpusOf:         "0x14c3a8e6",
-      inferenceCountOf: "0x2dcf3aa7",
-      inferenceAt:      "0x39e29df8",
+      corpusOf:         "0x98df8a35",
+      inferenceCountOf: "0x847385cd",
+      inferenceAt:      "0x27bbb882",
+      isMirrored:       "0xe12a75c4",
     };
 
     function abiPadUint(n) {
@@ -417,32 +419,25 @@
         setStep("signer-bound", "fail", "corpusOf(...) call failed: " + err.message);
       }
 
-      // Step 5 — mirror on Sepolia: try a read against ProvenantReader.
-      // We probe by calling `mirroredBundles(bundleHash)` — if the function
-      // returns a non-zero timestamp, the bundle was mirrored.
-      setStep("mirror", "pending", "Querying Sepolia mirror…");
+      // Step 5 — Sepolia mirror: call `isMirrored(bundleHash)` directly on the
+      // ProvenantReader contract. The function returns `bool` — `true` means
+      // the same TEE-signed bundle was re-attested on Sepolia by the same
+      // configured signer identity. This is the cross-chain match: no bridge,
+      // no validator quorum, no Meru backend in the loop.
+      setStep("mirror", "pending", "Querying Sepolia mirror — eth_call isMirrored(bundleHash)…");
       try {
-        // mirroredAt(bytes32) selector = keccak256("mirroredAt(bytes32)").slice(0,8)
-        // Pre-computed: 0xa39c7f0c (placeholder — actual reader contract function name)
-        // Fallback approach: just confirm the contract has bytecode at the address.
-        const code = await fetch(SEP_RPC, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            jsonrpc: "2.0",
-            id: 1,
-            method: "eth_getCode",
-            params: [READER_ADDR, "latest"],
-          }),
-        }).then(r => r.json());
-        if (code.result && code.result !== "0x" && code.result !== "0x0") {
+        const data = SELECTORS.isMirrored + abiPadBytes32(bundleHash);
+        const raw = await ethCall(SEP_RPC, READER_ADDR, data);
+        // The returned data is a 32-byte word; the last byte is 0x01 if true, 0x00 if false.
+        const isMirrored = typeof raw === "string" && /[1-9a-f]/i.test(raw.slice(-1));
+        if (isMirrored) {
           setStep("mirror", "ok",
-            `Reader live at <a href="${explorerSep("/address/" + READER_ADDR)}" target="_blank" rel="noopener">${READER_ADDR}</a> · ${(code.result.length - 2) / 2} bytes of code`);
+            `Bundle re-attested on Sepolia via <a href="${explorerSep("/address/" + READER_ADDR)}" target="_blank" rel="noopener">ProvenantReader</a> · isMirrored = true`);
         } else {
-          setStep("mirror", "fail", "ProvenantReader.sol has no code at expected Sepolia address.");
+          setStep("mirror", "fail", "isMirrored returned false — the bundle has NOT been mirrored on Sepolia.");
         }
       } catch (err) {
-        setStep("mirror", "fail", "Sepolia RPC call failed: " + err.message);
+        setStep("mirror", "fail", "Sepolia eth_call isMirrored failed: " + err.message);
       }
 
       // Final verdict

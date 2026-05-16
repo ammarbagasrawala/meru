@@ -3,7 +3,7 @@ import { sepolia } from "wagmi/chains";
 import type { Chain } from "viem";
 import { injected } from "wagmi/connectors";
 
-// 0G Aristotle mainnet — eligibility-critical chain for hackathon submission.
+// 0G Aristotle mainnet — the production chain Meru anchors to.
 export const aristotle: Chain = {
   id: 16661,
   name: "0G Aristotle",
