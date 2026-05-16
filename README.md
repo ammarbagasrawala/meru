@@ -1,4 +1,6 @@
-<p align="center"><img src="./meru-logo.png" alt="Meru" width="120" height="120" /></p>
+<p align="center">
+  <img src="./banner.svg" alt="Meru — Confidential AI you can prove" width="100%" />
+</p>
 
 # Meru — Confidential AI you can prove
 
