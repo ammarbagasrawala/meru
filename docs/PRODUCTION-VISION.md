@@ -4,7 +4,7 @@
 
 **Track 5 alignment.** This document is Meru's answer to the Track 5 problem statement: *"Building the confidentiality rails and abstraction layers for a secure Web 4.0 and developing privacy-preserving protocols, cross-chain fragmentation solutions, and MEV-resistant infrastructure."*
 
-What follows is the battle-tested system Meru is designed to *become* — not what was shipped in 5 days. The 5-day MVP is documented separately in [`HACKATHON-MVP.md`](./HACKATHON-MVP.md). This doc is the architecture, the market thesis, the novelty, the stack, the threat model, and the roadmap that the MVP is a deliberate slice of.
+What follows is the battle-tested system Meru is designed to *become* — not what's currently shipped. The MVP slice is documented separately in [`HACKATHON-MVP.md`](./HACKATHON-MVP.md). This doc is the architecture, the market thesis, the novelty, the stack, the threat model, and the roadmap that the MVP is a deliberate slice of.
 
 ---
 
@@ -16,9 +16,9 @@ What follows is the battle-tested system Meru is designed to *become* — not wh
 
 **The single sentence to remember.**
 
-> Meru is the open-source, decentralized, on-chain-anchored equivalent of [Apple Private Cloud Compute](https://security.apple.com/blog/private-cloud-compute/) — for regulated industries.
+> Meru is a **PCC-inspired architecture** for auditable confidential AI — multi-vendor, on-chain-anchored, regulator-readable. The yardstick is [Apple Private Cloud Compute](https://security.apple.com/blog/private-cloud-compute/); Meru is not claiming parity today.
 
-Apple PCC defined the canonical 5-requirement architecture for confidential AI inference. Apple's instance is closed-source, single-vendor, single-tenant, and consumer-facing. Meru is the multi-vendor, multi-tenant, permissionless, enterprise-grade version of the same five requirements — built on the 0G stack.
+Apple PCC defined the canonical 5-requirement architecture for confidential AI inference: Stateless Computation, Enforceable Guarantees, Verifiable Transparency, Non-Targetability, No Privileged Runtime Access. PCC sets a materially strict bar — direct client-to-validated-node encryption, stateless computation, no privileged runtime access, public transparency artifacts. **Meru uses PCC as a yardstick, not a parity claim**: the production roadmap targets each requirement explicitly, and the MVP today still has open gaps (placeholder signer, bridge-mode decryption at the backend, blob-level rather than per-chunk provenance — see [HACKATHON-MVP.md](./HACKATHON-MVP.md)). Apple's PCC is closed-source, single-vendor, single-tenant, and consumer-facing. Meru's contribution is the multi-vendor, multi-tenant, permissionless, on-chain-anchored shape of the same design intent — built on the 0G stack and audit-readable from any EVM auditor's browser.
 
 ---
 
@@ -26,13 +26,15 @@ Apple PCC defined the canonical 5-requirement architecture for confidential AI i
 
 ### §2.1 — Three regulatory cliffs the buyer is racing
 
-| Regime | Trigger date | Penalty | What it mandates |
-|---|---|---|---|
-| **EU AI Act Article 12** | Dec 2027 (full enforcement, delayed 7 May 2026 from Aug 2026) | €15M or 3% global turnover | *"Automatic, tamper-evident, timestamped logs over the lifetime of the [high-risk AI] system, independently verifiable by national competent authorities"* |
-| **India DPDPA Rule 13(4)** | 13 Nov 2026 (MeitY-proposed compression from May 2027) | ₹250 crore per violation | Cross-border audit-trail restrictions for Significant Data Fiduciaries handling personal data |
-| **RBI FREE-AI master directions** | Phased 2026-2027 | Operational sanctions + market-access loss | *"Every decision, whether by a machine or human, should leave a trail for regulators to review"* |
+**The buyer pain in one line:** every regulated business in 2026 is being asked to approve AI on private data, and their compliance officers cannot — because there is no tamper-proof way to show what the AI did with the data.
 
-The delay of the EU AI Act from Aug 2026 to Dec 2027 reduced the *urgency* but didn't change the *direction*. ~50% of EU-deployed high-risk systems are already implementing now to avoid retroactive remediation. The load-bearing 2026 narrative is **DPDPA + incident-driven leak pain**, not just EU AI Act.
+Three regulatory currents amplify that pain (full citations + nuance in the [appendix](#appendix--regulatory-context-and-citations) at the end of this doc; the headline detail is light here on purpose):
+
+- **EU AI Act, Article 12** — supports automatic logging and traceability for high-risk AI systems; the operational interpretation of "tamper-evident" is what creates the audit-substrate buyer
+- **India DPDPA — Digital Personal Data Protection Rules** — staged enforcement window for cross-border, breach-notification, and Significant Data Fiduciary controls
+- **RBI's FREE-AI committee report (Aug 2025)** — currently a committee report, not master directions, but signals the direction of travel for Indian financial-sector AI oversight
+
+This document treats those three as *directional tailwinds*, not deadlines. Don't read the table as a regulatory-attorney citation — read it as buyer-side context for why a compliance officer in 2026 is having this conversation.
 
 ### §2.2 — Three incidents the buyer's CISO already knows
 
@@ -288,17 +290,17 @@ Full named-assumption list: [`provenant/THREAT-MODEL.md`](../THREAT-MODEL.md).
 
 ### §3.4 — Mapping to Apple PCC's 5 design requirements
 
-Full table in [`provenant/docs/MERU-VS-PCC-VS-DSTACK.md`](./MERU-VS-PCC-VS-DSTACK.md). Production-target summary:
+Full table in [`provenant/docs/MERU-VS-PCC-VS-DSTACK.md`](./MERU-VS-PCC-VS-DSTACK.md). The matrix below is **production-target state** (where v3 lands), not v1 parity. v1's status against each requirement is in [`HACKATHON-MVP.md`](./HACKATHON-MVP.md).
 
-| PCC requirement | Meru production target |
-|---|---|
-| **Stateless Computation** | ✅ Enclave is stateless per call; corpus decryption happens inside the enclave at query time |
-| **Enforceable Guarantees** | ✅ Multi-attestation + reproducible builds + on-chain revocation events |
-| **Verifiable Transparency** | ✅ Anchor + mirror + permissionless indexer mesh + standalone verifier widget |
-| **Non-Targetability** | ✅ Encrypted intents + commit-reveal MEV gate + per-corpus HSM-backed key isolation |
-| **No Privileged Runtime Access** | ✅ Backend is transport-only; signing keys live inside the enclave |
+| PCC requirement | Meru v1 (today) | Meru production target |
+|---|---|---|
+| **Stateless Computation** | ⚠️ Backend caches extracted PDF text encrypted-at-rest for grounding | 🎯 Enclave is stateless per call; corpus decryption happens inside the enclave at query time |
+| **Enforceable Guarantees** | ⚠️ Single-vendor TEE attestation (Intel TDX via Phala); no on-chain revocation | 🎯 Multi-attestation (Intel TDX + AMD SEV-SNP) + reproducible builds + `RevokeEnclave` / `EnrollEnclave` events |
+| **Verifiable Transparency** | ⚠️ Audit log on-chain; enclave is a 0G black box (no reproducible-build pipeline) | 🎯 Anchor + mirror + permissionless indexer mesh + standalone verifier + binary transparency log |
+| **Non-Targetability** | ⚠️ Encrypted intents in bridge mode (backend decrypts); commit-reveal MEV gate is real | 🎯 Enclave-owned X25519 + commit-reveal + per-corpus HSM-backed key isolation |
+| **No Privileged Runtime Access** | ⚠️ Backend holds signing keys (Level-1 placeholder); decrypts encrypted intents | 🎯 Backend = transport only; signing + decryption inside the enclave |
 
-PCC sets the technical bar; Meru sets the *audit* bar that PCC's closed-source model cannot.
+The "production target" column is the v3 destination, not a v1 capability claim. Today's MVP closes the cryptographic-anchor part of the bar; the operational and runtime parts (HSM, multi-attestation, reproducible builds, enclave-owned keys) are explicitly v2/v3 work.
 
 ### §3.5 — The complete tech stack (every layer, every choice)
 
@@ -651,10 +653,10 @@ The seven things no other Track 5 submission has all of:
 1. **Real mainnet artifacts.** Provenant.sol live on 0G Aristotle (chain 16661) at `0xA8296DfF…30C5` with real `InferenceLogged` events you can click on chainscan. Most submissions are testnet-only or localhost demos.
 2. **Real Sealed Inference via the canonical SDK.** Wired against `@0gfoundation/0g-compute-ts-sdk` with the on-chain broker contract addresses verified to have deployed code. The TEE chat signature is verified via `processResponse` against the on-chain `teeSignerAddress`.
 3. **Anchor + mirror cross-chain pattern (not a bridge).** Same signer identity re-attests on Sepolia (production: Base Mainnet + Linea + Ethereum). No bridge, no validator quorum, no funds in flight. Solves Track 5's cross-chain-fragmentation sub-theme without introducing the $1.23B-since-2022 bridge-exploit surface.
-4. **On-chain commit-reveal MEV gate.** `commitInference` + 60s contract-enforced window + `revealAndLogInference`. The 60s gap is real (not a UI throttle) — the contract refuses the reveal until `block.timestamp >= commit.timestamp + 60`. This is the v1 implementation of Track 5's MEV-resistance sub-theme.
-5. **Permissionless indexer with JSON-RPC + WebSocket + multi-destination relayer.** Anyone can run an instance. The TEE signature on each bundle keeps every indexer honest — they can re-order or omit, but cannot forge.
+4. **On-chain commit-reveal MEV gate.** `commitInference` + 60s contract-enforced window + `revealAndLogInference`. The 60s gap is real (not a UI throttle) — the contract refuses the reveal until `block.timestamp >= commit.timestamp + 60`. This is the v1 implementation of Track 5's MEV-resistance sub-theme; the reveal-key release is gated by an in-memory single-party threshold scaffold today, with the Shutter Network keyper quorum integration as the v2 swap (see §6.2 and §8).
+5. **Permissionless indexer with JSON-RPC + WebSocket + multi-destination relayer.** Anyone can run an instance as a **read replica of the authoritative source-chain log**. Today's `InferenceLogged` event carries `(tokenId, bundleHash, questionHash, timestamp)`; the TEE signature lives in the source-chain anchor digest and is currently supplied out-of-band by the backend to the relayer. v2 widens the event payload to carry the TEE signature inline so any indexer can independently reconstruct full TEE-attested truth from event data alone — until then, treat the indexer as a permissionless **read replica**, not an independent attestation.
 6. **Standalone verifier widget.** Single static HTML file. Queries 0G + Sepolia directly. No Meru backend in the loop. The "you don't have to trust us" moment in the demo.
-7. **The honest-scope discipline.** Every scaffold is explicitly named in [`THREAT-MODEL.md`](../THREAT-MODEL.md). Every overclaim has been removed. Backend refuses to anchor on the real chain when the inference falls back to stub (the `bundle.stub === true` gate in `query.ts`). Sharp judges respect this more than half-implementations.
+7. **The honest-scope discipline.** Every shipped claim has a verification path; every non-shipped control is labeled roadmap. [`THREAT-MODEL.md`](../THREAT-MODEL.md) names the scaffolds; this document's §8 sequences them. Backend refuses to anchor on the real chain when the inference falls back to stub (the `bundle.stub === true` gate in `query.ts`). Sharp judges respect this more than half-implementations.
 
 ### §5.4 — Cryptographic primitives
 
@@ -694,9 +696,11 @@ Track 5 sub-theme: ✅ **cross-chain fragmentation solutions.**
 
 The realistic MEV surface on an audit log is "informational MEV" (priority-frontrunning on intent metadata), not "economic MEV" (sandwich attacks on prices). Meru's commit-reveal addresses informational MEV honestly without overclaiming protection against attacks that don't apply.
 
-Track 5 sub-theme: ✅ **MEV-resistant infrastructure.**
+**What's live in v1 vs. what's the production target:** the on-chain commit-reveal envelope and the contract-enforced 60s gap are real on 0G Aristotle today. The piece that gates the *reveal-key* release in v1 is an in-memory single-party threshold scaffold (`backend/src/mev/shutter.ts`); production v2 swaps that to the live Shutter Network keyper quorum (documented in §8 as a ~3-line surface change). The on-chain primitive is what makes the swap safe — the gate doesn't depend on who holds the key.
 
-Architectural parallel: this is the same pattern as **CoW Protocol's batch auctions** and **Flashbots SUAVE** — keep the payload hidden until inclusion is locked. Different domain (audit logs vs DEX swaps), same primitive (encrypted intents + ordering separation).
+Track 5 sub-theme: ✅ **MEV-resistant infrastructure** (v1 on-chain gate live; threshold-keyper integration roadmap).
+
+Architectural parallel: the on-chain commit-reveal envelope follows the same primitive as **CoW Protocol's batch auctions** and **Flashbots SUAVE** — keep the payload hidden until inclusion is locked. Different domain (audit logs vs DEX swaps), same idea (encrypted intents + ordering separation).
 
 ### §6.3 — The signed-bundle wire format
 
@@ -737,7 +741,7 @@ This is the wire format Meru proposes as the **Audit Substrate v0.1 spec** for a
 
 **The novelty:** the Meru indexer is permissionless — anyone can run a copy. Each instance subscribes to 0G + mirror chains, decodes `InferenceLogged` events, stores them in SQLite (production: Postgres), and exposes a JSON-RPC 2.0 surface (`provenant_getInferences`, `provenant_status`, `provenant_getInferenceByBundle`) plus WebSocket subscriptions.
 
-**Why a dishonest indexer cannot lie:** every bundle on-chain has the TEE signature. The indexer can re-order. The indexer can omit. The indexer **cannot forge** a bundle that passes signature verification against the corpus's bound `teeSignerAddress`. So an auditor reading from an indexer either (a) trusts the indexer and verifies signatures themselves, or (b) reads from multiple independent indexers and treats their union as the truth.
+**What today's indexer actually is:** a permissionless **read replica of the authoritative source-chain log**. Each instance subscribes to `InferenceLogged` events on 0G Aristotle, normalises them into a queryable surface, and exposes them via JSON-RPC / WebSocket. The source-chain log is the trust root; the indexer is a convenience layer that any auditor can cross-check against `chainscan.0g.ai` directly. v1's `InferenceLogged` event carries `(tokenId, bundleHash, questionHash, timestamp)` — the TEE signature lives in the original anchor digest and is supplied to the relayer out-of-band by the backend. The auditor's full trust path is therefore: indexer → source-chain event match → backend-supplied TEE sig → on-chain `teeSignerAddress` verification. v2 closes this loop by widening the event payload to carry the TEE signature inline, so any indexer can independently reconstruct TEE-attested truth from event data alone.
 
 **Operational mode:** `indexerSignFallback` is **off by default** with a `[KELPDAO-ANTIPATTERN]` warning in code. The indexer never re-signs the bundle — re-signing with the indexer's own key would re-introduce the trusted-relayer problem KelpDAO paid $292M to learn about.
 
@@ -847,7 +851,7 @@ The thesis is bigger than the track:
 
 > Confidential AI on regulated data is the inflection point. Whoever ships the audit primitive that regulators trust + AI vendors can plug into + auditors can read independently — without trusting any single party — captures the layer.
 
-That's the layer Meru is building toward. The Track 5 submission is the proof that this team can ship the wedge slice in 5 days. The production vision is what makes the wedge worth funding.
+That's the layer Meru is building toward. The MVP slice is the proof that this team can ship the wedge against live mainnet. The production vision is what makes the wedge worth funding.
 
 ---
 
@@ -862,8 +866,44 @@ That's the layer Meru is building toward. The Track 5 submission is the proof th
 - [IBM Cost of a Data Breach 2025](https://www.ibm.com/reports/data-breach) — buyer-pain data
 - [EU AI Act Article 12](https://artificialintelligenceact.eu/article/12/) — audit-log mandate
 - [CoW Protocol architecture](https://docs.cow.fi/cow-protocol/concepts/benefits/mev-protection) — MEV-resistance pattern reference
-- Meru's own docs: [`THREAT-MODEL.md`](../THREAT-MODEL.md), [`MERU-VS-PCC-VS-DSTACK.md`](./MERU-VS-PCC-VS-DSTACK.md), [`E2E-ENCRYPTED-INFERENCE.md`](./E2E-ENCRYPTED-INFERENCE.md), [`INTEGRATING-0G-SEALED-INFERENCE.md`](./INTEGRATING-0G-SEALED-INFERENCE.md), [`HACKATHON-MVP.md`](./HACKATHON-MVP.md) (the 5-day slice)
+- Meru's own docs: [`THREAT-MODEL.md`](../THREAT-MODEL.md), [`MERU-VS-PCC-VS-DSTACK.md`](./MERU-VS-PCC-VS-DSTACK.md), [`E2E-ENCRYPTED-INFERENCE.md`](./E2E-ENCRYPTED-INFERENCE.md), [`INTEGRATING-0G-SEALED-INFERENCE.md`](./INTEGRATING-0G-SEALED-INFERENCE.md), [`HACKATHON-MVP.md`](./HACKATHON-MVP.md) (the MVP slice)
 
 ---
 
-*Document version: 1.0 — 2026-05-16. Companion to [`HACKATHON-MVP.md`](./HACKATHON-MVP.md). Audience: judges, mentors, future investors, future enterprise buyers.*
+## Appendix — Regulatory context and citations
+
+This appendix carries the long-form citations for the three regulatory tailwinds referenced in §2.1. It is deliberately separated from the body because the body argues market need; this appendix argues precision. Where the body is short, this is exact.
+
+### A.1 — EU AI Act, Article 12 (Record-keeping)
+
+- **Source:** Regulation (EU) 2024/1689 ("EU AI Act"), Article 12, "Record-keeping." Consolidated text available at [artificialintelligenceact.eu/article/12](https://artificialintelligenceact.eu/article/12/) and on EUR-Lex.
+- **What the Article actually requires:** providers of high-risk AI systems must design their systems to enable the *automatic recording of events ("logs")* over the lifetime of the system, to a degree appropriate to the intended purpose, including parameters that allow identification of situations that may result in the system presenting a risk or undergoing substantial modification.
+- **What the Article does not say verbatim:** the Article does not mandate "tamper-proof" or "blockchain-anchored" logging in those words. Article 12 establishes the *logging* obligation; the *integrity assurance* requirement is operationalised through standards and guidance (e.g. forthcoming harmonised standards and the Commission's implementing acts). Meru's positioning is that tamper-evident anchoring is the most defensible *operational interpretation* of Article 12 + adjacent Articles (Articles 9, 13, 17, 19) for compliance-grade buyers, not a literal citation.
+- **Phasing:** prohibitions in Chapter II applied from 2 February 2025; obligations on general-purpose AI models applied from 2 August 2025; the bulk of high-risk system obligations apply from 2 August 2026, with certain provisions tied to existing product-safety legislation deferred to 2 August 2027. Buyers under existing high-risk classifications (Annex III) are scoping vendor controls now.
+
+### A.2 — India DPDPA — Digital Personal Data Protection Rules, 2025
+
+- **Source:** Digital Personal Data Protection Act, 2023 (Act 22 of 2023) + the Digital Personal Data Protection Rules, 2025 notified by the Ministry of Electronics and Information Technology (MeitY).
+- **Status:** the Act received Presidential assent in August 2023. The Rules were notified in 2025 with a *staged enforcement window* — some Rules apply on notification; others apply at intervals (commonly framed as "two-stage" / "twelve-month" / "eighteen-month" cohorts depending on the Rule). The exact day-counts are in the gazette notification; readers should consult MeitY's notified Rules text for the date that applies to a given obligation.
+- **What's actually load-bearing for Meru's pitch:** Significant Data Fiduciary designation (data fiduciaries handling large volumes of personal data or sensitive categories face elevated obligations including DPO appointment, DPIA, and independent audit), cross-border transfer notifications, and 72-hour-class breach notification. These are precisely the controls a regulated buyer's compliance officer needs *evidence trails* for — which is the buyer pain Meru's audit substrate addresses.
+- **What this appendix does not claim:** Meru is not a DPDPA compliance product. It is an audit substrate whose anchored log is *usable as evidence* in a DPDPA investigation, the same way an immutable access log is usable as evidence under any data-protection regime. The regulatory tailwind is real; the marketing fit is buyer-side, not regulator-side.
+
+### A.3 — RBI FREE-AI Committee Report (Aug 2025)
+
+- **Source:** Report of the Reserve Bank of India's *Committee on Framework for Responsible and Ethical Enablement of AI in the Financial Sector* (the "FREE-AI Committee"). Published August 2025 on rbi.org.in.
+- **Status precision:** this is a **committee report**, not master directions, not a circular, not a notification with the force of law. Master directions following from the report would go through the standard RBI consultation + issuance process and would carry distinct citations. Treat the FREE-AI report as *signal of regulatory direction*, not as an obligation already in force.
+- **Why it still matters for the pitch:** Indian banks, NBFCs, and payment-system providers are large-scale regulated AI buyers. When the central bank publishes a committee report on AI governance, regulated institutions begin scoping vendor controls *in advance of the eventual directions* — because retrofit costs are higher than greenfield costs. The buyer-side anxiety the FREE-AI report creates is real today even though the binding obligations are not.
+
+### A.4 — How to read these three together
+
+The body of this document treats the three as *directional tailwinds, not deadlines*. The discipline here is:
+
+- **EU AI Act Article 12** is in force as a logging obligation with phasing into 2026-2027. The "tamper-evident" interpretation is operational, not literal.
+- **DPDPA Rules 2025** are notified with staged enforcement. The buyer-side controls Meru's audit log evidences are real and load-bearing.
+- **RBI FREE-AI** is a committee report — signal, not law — and is named as such.
+
+A reader looking for *exact regulatory dates and verbatim mandate language* should treat the underlying gazette notifications, regulation text, and RBI publications as authoritative, not this appendix. This appendix is a faithful summary, not a substitute.
+
+---
+
+*Document version: 1.1 — 2026-05-16 (post-mentor-pass). Companion to [`HACKATHON-MVP.md`](./HACKATHON-MVP.md). Audience: judges, mentors, future investors, future enterprise buyers.*

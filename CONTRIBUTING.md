@@ -1,6 +1,6 @@
 # Contributing to Provenant
 
-Thanks for stopping by. Provenant was built solo in 6 days for the 0G APAC Hackathon, but it's MIT-licensed and contributions are welcome.
+Thanks for stopping by. Meru is MIT-licensed and contributions are welcome.
 
 ## Ground rules
 

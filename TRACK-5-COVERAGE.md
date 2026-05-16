@@ -6,7 +6,7 @@
 >
 > *"Developing privacy-preserving protocols, cross-chain fragmentation solutions, and MEV-resistant infrastructure."*
 >
-> This document states **what Meru ships in the 5-day MVP, what the production-target system extends to, and where every scaffold honestly sits in between.** It is the load-bearing document for judges who want vision-vs-reality clarity in one read.
+> This document states **what Meru ships in the MVP today, what the production-target system extends to, and where every scaffold honestly sits in between.** It is the load-bearing document for anyone who wants vision-vs-reality clarity in one read.
 
 ---
 
@@ -15,12 +15,12 @@
 This file pairs with two companion docs:
 
 - 📐 [**`docs/PRODUCTION-VISION.md`**](./docs/PRODUCTION-VISION.md) — the full production-target architecture, market thesis, sequence diagrams, and stack. *"What Meru is being built toward."*
-- 🛠 [**`docs/HACKATHON-MVP.md`**](./docs/HACKATHON-MVP.md) — the 5-day slice that's actually live on 0G Aristotle mainnet. *"What we shipped."*
+- 🛠 [**`docs/HACKATHON-MVP.md`**](./docs/HACKATHON-MVP.md) — the MVP slice that's actually live on 0G Aristotle mainnet. *"What we shipped."*
 
 Every sub-theme section below has three blocks:
 
 - **🟢 Production vision** — what the full system delivers (from PRODUCTION-VISION.md)
-- **🛠 MVP shipped** — what the 5-day repo demonstrably runs (from HACKATHON-MVP.md)
+- **🛠 MVP shipped** — what the repo demonstrably runs today (from HACKATHON-MVP.md)
 - **🟡 Scaffold → v2** — the honestly-labelled gap between the two
 
 The point of this format: a judge can read the production vision, see the live-mainnet MVP, and verify the gap is documented rather than hidden.
@@ -192,7 +192,7 @@ Full named-assumptions list in [`THREAT-MODEL.md`](./THREAT-MODEL.md).
 ## Cross-references
 
 - 📐 [**`docs/PRODUCTION-VISION.md`**](./docs/PRODUCTION-VISION.md) — full Web 4.0 architecture, market thesis, sequence diagrams, stack layers
-- 🛠 [**`docs/HACKATHON-MVP.md`**](./docs/HACKATHON-MVP.md) — 5-day MVP slice details + extensibility to agents/MCP/multi-agent
+- 🛠 [**`docs/HACKATHON-MVP.md`**](./docs/HACKATHON-MVP.md) — MVP slice details + extensibility to agents/MCP/multi-agent
 - 🛡 [**`THREAT-MODEL.md`**](./THREAT-MODEL.md) — adversaries, named assumptions, TEE.fail/WireTap, what we don't claim
 - 🍎 [**`docs/MERU-VS-PCC-VS-DSTACK.md`**](./docs/MERU-VS-PCC-VS-DSTACK.md) — Apple PCC's 5 design requirements mapped against Meru and Phala dStack
 - 🔐 [**`docs/E2E-ENCRYPTED-INFERENCE.md`**](./docs/E2E-ENCRYPTED-INFERENCE.md) — v2 enclave-owned encryption handshake protocol
@@ -201,4 +201,4 @@ Full named-assumptions list in [`THREAT-MODEL.md`](./THREAT-MODEL.md).
 
 ---
 
-*Aligned with `docs/PRODUCTION-VISION.md` (full architecture) and `docs/HACKATHON-MVP.md` (5-day shipped slice). Updated 2026-05-16.*
+*Aligned with `docs/PRODUCTION-VISION.md` (full architecture) and `docs/HACKATHON-MVP.md` (shipped MVP slice). Updated 2026-05-16.*

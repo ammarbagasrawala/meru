@@ -1,20 +1,20 @@
-# Meru — Hackathon MVP
+# Meru — MVP Slice
 
-### What was actually shipped in 5 days, and where it goes next
+### What was actually shipped, and where it goes next
 
-**This document is the companion to [`PRODUCTION-VISION.md`](./PRODUCTION-VISION.md).** That doc describes the production-target system Meru is designed to *become*. This doc describes the deliberate 5-day slice of that system that was shipped for the 0G APAC Hackathon Track 5 submission — what's real, what's scaffold, and how the simple chat UI extends to the full agentic future.
+**This document is the companion to [`PRODUCTION-VISION.md`](./PRODUCTION-VISION.md).** That doc describes the production-target system Meru is designed to *become*. This doc describes the deliberate MVP slice of that system that's currently live — what's real, what's scaffold, and how the simple chat UI extends to the full agentic future.
 
-The honest framing across both docs: **the hackathon MVP is a *wedge*, not the product.** The wedge proves the cryptographic chain works end-to-end against real 0G mainnet. The production vision shows what the wedge becomes when scaled, hardened, and composed.
+The honest framing across both docs: **the MVP is a *wedge*, not the product.** The wedge proves the cryptographic chain works end-to-end against real 0G mainnet. The production vision shows what the wedge becomes when scaled, hardened, and composed.
 
 ---
 
-## §1 — The 5-day mandate
+## §1 — The scope mandate
 
-**The constraint:** one solo builder, full-time job, ~30-35 productive hours over the submission window, $5-15 USD of mainnet OG tokens for gas.
+**The constraint:** one solo builder, full-time job, a tight build window, $5-15 USD of mainnet OG tokens for gas.
 
-**The mandate:** ship a working vertical slice that hits **all three 0G primitives** (Storage + Compute + Chain), covers **all three Track 5 sub-themes** credibly, deploys on **0G Aristotle mainnet** (not testnet), and survives a sceptical judge's 30-second sniff test.
+**The mandate:** ship a working vertical slice that hits **all three 0G primitives** (Storage + Compute + Chain), covers **all three sub-themes** (privacy / cross-chain / MEV) credibly, deploys on **0G Aristotle mainnet** (not testnet), and survives a sceptical reviewer's 30-second sniff test.
 
-**What we deliberately chose not to build** (per the master plan §2.3 + the production gap map):
+**What we deliberately chose not to build** (sequenced into v2/v3 in [`PRODUCTION-VISION.md`](./PRODUCTION-VISION.md) §8):
 
 - Multi-tenant RBAC / org scopes
 - HSM / KMS / signer rotation lifecycle
@@ -27,7 +27,7 @@ The honest framing across both docs: **the hackathon MVP is a *wedge*, not the p
 - Reproducible builds / binary transparency
 - Compliance evidence-export bundles
 
-Each of these is explicitly named in [`THREAT-MODEL.md`](../THREAT-MODEL.md) and the [`Production Gap Map`](<see internal review notes — kept local>). The discipline is "ship the wedge cleanly; label every gap; ship nothing dishonest."
+Each of these is named in [`THREAT-MODEL.md`](../THREAT-MODEL.md) and the v2/v3 roadmap in [`PRODUCTION-VISION.md`](./PRODUCTION-VISION.md). The discipline is straightforward: every shipped claim has a verification path; every non-shipped control is labeled roadmap.
 
 ---
 
@@ -102,7 +102,7 @@ Standalone Node.js package at [`provenant/indexer/`](../indexer/). Subscribes to
 - **WebSocket subscriptions** for live event streams
 - **Multi-destination relayer** (off-by-default `indexerSignFallback` with `[KELPDAO-ANTIPATTERN]` warning)
 
-Anyone can run a copy. The TEE signature on each bundle keeps every indexer honest.
+Anyone can run a copy as a **permissionless read replica of the authoritative source-chain log**. v1's `InferenceLogged` event carries `(tokenId, bundleHash, questionHash, timestamp)`; the TEE signature on the corresponding anchor digest is supplied to relayers out-of-band by the backend, so an auditor's full trust path is: indexer → source-chain event match → TEE-sig verification against on-chain `teeSignerAddress`. v2 widens the event payload to carry the TEE signature inline so indexers can independently reconstruct TEE-attested truth from event data alone.
 
 ### §2.6 — Encrypted-intents path (browser-to-backend bridge mode)
 
@@ -131,7 +131,7 @@ Anyone can run a copy. The TEE signature on each bundle keeps every indexer hone
 
 ## §3 — What's deliberately scaffold (the labelled v2 gaps)
 
-Per [`THREAT-MODEL.md`](../THREAT-MODEL.md) and the [`Production Gap Map`](<see internal review notes — kept local>):
+Per [`THREAT-MODEL.md`](../THREAT-MODEL.md) and the v2/v3 roadmap in [`PRODUCTION-VISION.md`](./PRODUCTION-VISION.md) §8:
 
 | Scaffold | Why deferred | v2 plan |
 |---|---|---|
@@ -147,7 +147,7 @@ Per [`THREAT-MODEL.md`](../THREAT-MODEL.md) and the [`Production Gap Map`](<see 
 | No KMS / HSM separation for signer + gas + encryption keys | Single `.env` is dev-appropriate | AWS KMS / HashiCorp Vault in production |
 | No multi-tenant RBAC | Single-team demo | Per-org scopes + audit role separation |
 
-**This is roughly half of what the [`Production Gap Map`](<see internal review notes — kept local>) catalogs.** None of these are dishonest engineering — each is a platform-feature dependency or a roadmap item, named explicitly with a v2 plan.
+**These are roadmap items, not undisclosed gaps.** Each is a platform-feature dependency or a v2/v3 milestone tracked in [`PRODUCTION-VISION.md`](./PRODUCTION-VISION.md) §8 — labelled, sized, and sequenced rather than papered over.
 
 ---
 
@@ -235,7 +235,7 @@ This is the "wedge to product" sequence Apple PCC took (single chat UI → all o
 | Slither high/medium findings | 0 / 0 |
 | Source files (Meru-authored, excluding `node_modules`) | ~50 across `backend/`, `frontend/`, `contracts/`, `indexer/`, `verifier/` |
 | Research + reference docs | 35+ markdown files in `provenant/docs/` + parent dirs |
-| Build time | 5 days, solo, alongside full-time job |
+| Build mode | Solo, alongside full-time job |
 | Mainnet OG spent | ~4-5 OG total (deploy + ledger + sub-account + queries) |
 
 ### §5.2 — What's in the repo
@@ -357,15 +357,15 @@ Three customers × $250K-$350K ACV. Profile: regulated AI vendors who themselves
 
 ## §8 — Why this MVP is the right scope for judging
 
-Three reasons the 5-day slice is the right thing to evaluate:
+Three reasons the MVP slice is the right thing to evaluate:
 
-1. **Every claim is verifiable.** Run `npm run smoke`. Open chainscan. Click the verifier widget. Read the threat model. No marketing claim survives in the docs that the code doesn't back up.
+1. **Every shipped claim has a verification path.** Run `npm run smoke`. Open chainscan. Click the verifier widget. Read the threat model. Claims in the docs are tied to artifacts an evaluator can independently re-derive.
 
-2. **Every gap is named.** [`THREAT-MODEL.md`](../THREAT-MODEL.md) catalogs what v1 doesn't claim. The [`Production Gap Map`](<see internal review notes — kept local>) catalogs what production-grade means. The "what we don't claim" list in the README is **as load-bearing** as the "what we do claim" list. Sharp judges respect this more than overclaim.
+2. **Every non-shipped control is labeled roadmap.** [`THREAT-MODEL.md`](../THREAT-MODEL.md) names what v1 does not claim. [`PRODUCTION-VISION.md`](./PRODUCTION-VISION.md) §8 maps those gaps to v2/v3 milestones with platform dependencies. The "what we don't claim" list is treated with the same care as the "what we do claim" list.
 
-3. **The extension story is concrete.** Everything in [`PRODUCTION-VISION.md`](./PRODUCTION-VISION.md) §8 is a specific engineering plan with specific effort estimates and specific platform dependencies — not "we'll figure it out post-funding." The wedge → product path is mapped.
+3. **The extension story is concrete.** Everything in [`PRODUCTION-VISION.md`](./PRODUCTION-VISION.md) §8 is a specific engineering plan with effort estimates and platform dependencies — not "we'll figure it out post-funding." The wedge → product path is mapped.
 
-The combination — **a verifiable wedge + honest gaps + a credible roadmap** — is what makes the 5-day MVP a defensible submission and a fundable thesis.
+The combination — **a verifiable wedge + named roadmap gaps + a concrete extension plan** — is what makes the MVP a defensible submission and a fundable thesis.
 
 ---
 
