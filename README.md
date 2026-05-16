@@ -4,34 +4,63 @@
 
 # Meru — Confidential AI you can prove
 
-> **A PCC-inspired audit substrate for confidential AI on 0G — multi-vendor, on-chain-anchored, regulator-readable.**
-> The yardstick is [Apple Private Cloud Compute](https://security.apple.com/blog/private-cloud-compute/); Meru is the open-source, multi-tenant, audit-anchored take. The MVP closes the cryptographic-anchor part of that bar against live mainnet; HSM, multi-attestation, reproducible builds, and enclave-owned signing keys are explicit v2/v3 roadmap work (see [`docs/PRODUCTION-VISION.md`](./docs/PRODUCTION-VISION.md) §3.4).
+*The audit substrate for confidential AI on 0G — encrypted-at-rest corpora, TEE-attested inference, on-chain tamper-evident logs, and cross-chain readability without a bridge.*
+
+> **`Live on 0G Aristotle mainnet · chain id 16661`** · **`MIT licensed`** · **`v1 shipped on mainnet — v2/v3 roadmap labelled, not hidden`**
+>
+> Solo build by [Ammar Bagasrawala](https://www.linkedin.com/in/ammarabagasrawala/) — ML engineer focused on the confidential-AI production gap.
+
+A PCC-inspired architecture for auditable confidential AI: multi-vendor, on-chain-anchored, regulator-readable. The yardstick is [Apple Private Cloud Compute](https://security.apple.com/blog/private-cloud-compute/); Meru is not claiming parity today. The MVP closes the cryptographic-anchor part of that bar against live mainnet; HSM, multi-attestation, reproducible builds, and enclave-owned signing keys are explicit v2/v3 roadmap work — see [`docs/PRODUCTION-VISION.md`](./docs/PRODUCTION-VISION.md) §3.4.
 
 ---
 
-## What you can verify in 60 seconds
+## Verify in 60 seconds
+
+Real proof first; demo polish second.
 
 | 🔗 What | Where |
 |---|---|
-| **Live contract** (0G Aristotle mainnet, chain id 16661) | [`0xA8296DfF7C2faD1170e880d71aF92B2F201D30C5`](https://chainscan.0g.ai/address/0xA8296DfF7C2faD1170e880d71aF92B2F201D30C5) |
-| **Cross-chain mirror** (`ProvenantReader.sol`, Sepolia) | [`0xA8296DfF7C2faD1170e880d71aF92B2F201D30C5`](https://sepolia.etherscan.io/address/0xA8296DfF7C2faD1170e880d71aF92B2F201D30C5) |
-| **Demo video (2:30)** | _(linked at submission)_ |
-| **Live demo** | _(Vercel deployment URL at submission)_ |
-| **Standalone verifier** | [`/verifier/index.html`](./verifier/index.html) — single static HTML, queries 0G + Sepolia directly, **no Meru backend in the loop** |
-| **One-command mainnet smoke** | `cd backend && npm run smoke` — exercises the deployed contract end-to-end in <5 seconds (8/8 green at last run) |
-| **Static analysis** | [Slither v0.11.5 report](./contracts/SLITHER-AUDIT.md) — 0 high, 0 medium against Provenant code |
-
-### One-sentence pitch
-
-> Meru is the audit substrate for confidential AI on 0G: encrypted-at-rest corpora, TEE-attested inference, on-chain tamper-evident logs, and cross-chain readability — without a bridge.
+| **Live contract** (0G Aristotle mainnet, chain id 16661) | [`0xA8296DfF7C2faD1170e880d71aF92B2F201D30C5`](https://chainscan.0g.ai/address/0xA8296DfF7C2faD1170e880d71aF92B2F201D30C5) — open chainscan to see real `InferenceLogged` events |
+| **Cross-chain mirror** (`ProvenantReader.sol`, Sepolia) | [`0xA8296DfF7C2faD1170e880d71aF92B2F201D30C5`](https://sepolia.etherscan.io/address/0xA8296DfF7C2faD1170e880d71aF92B2F201D30C5) — same address, different chain, independently verifiable |
+| **Standalone verifier widget** | [`/verifier/index.html`](./verifier/index.html) — single static HTML file. Queries 0G + Sepolia directly via `eth_call`. **No Meru backend in the loop.** This is the punchline. |
+| **One-command mainnet smoke** | `cd backend && npm run smoke` — exercises the deployed contract end-to-end in <5 seconds. Last run: **8/8 green**. |
+| **Static analysis** | [Slither v0.11.5 report](./contracts/SLITHER-AUDIT.md) — **0 high, 0 medium** against Provenant code |
+| **Demo video (2:30)** | _Link pending — recording per [`docs/DEMO-FALLBACK.md`](./docs/DEMO-FALLBACK.md). Until then, the verifier widget + chainscan link above are the same proof, slower._ |
+| **Live deployment** | _Vercel URL pending — run locally with `npm run dev` (see §13) for an identical instance_ |
 
 ---
 
-## §1 — Track 5 sub-theme coverage
+## What it does for a user (in three steps)
 
-Track 5 asks for **privacy-preserving protocols, cross-chain fragmentation solutions, and MEV-resistant infrastructure** for a confidential Web 4.0. Meru ships one load-bearing primitive per pillar, each with an explicit v1-vs-production line.
+1. **Upload.** A regulated team encrypts a policy or compliance document **in the browser** (X25519 → AES-GCM) and stores the ciphertext on 0G Storage. The corpus is minted as an ERC-721 iNFT owned by their wallet — plaintext never reaches a server in the production target (v1 caveat in §2).
+2. **Ask.** An analyst asks the AI a question. The query is encrypted to the TEE, the answer is computed inside a TDX + H100 enclave on 0G Compute, and a signed bundle is anchored on 0G Chain (with a **60-second on-chain commit-reveal MEV gate** — the contract refuses the reveal until the 60s elapse) and re-attested cross-chain on Sepolia.
+3. **Verify.** A regulator opens [`/verifier/index.html`](./verifier/index.html) in their browser, pastes a `tokenId` + `bundleHash`, and gets ✓ — **without trusting Meru's infrastructure**. The verifier reads both chains directly.
 
-| Track 5 pillar | What's shipped on mainnet today | Where it lives | v2/v3 production target |
+---
+
+## Live today vs production roadmap (the most important table)
+
+A skim-friendly summary. Full per-row matrix at §5.2; production rationale at [`docs/PRODUCTION-VISION.md`](./docs/PRODUCTION-VISION.md) §8.
+
+| Capability | v1 — live on 0G Aristotle today | Production target |
+|---|---|---|
+| **TEE signer custody** | ⚠️ Level-1 placeholder — deployer wallet signs outside the enclave | 🎯 Enclave generates X25519 keypair via dStack KMS; pubkey attested via DCAP quote |
+| **Encrypted intents** | ⚠️ Bridge mode — backend decrypts before forwarding to TEE | 🎯 Enclave-owned key — backend becomes pure transport |
+| **MEV gate** | ✅ On-chain 60s commit-reveal (real) + in-memory threshold scaffold | 🎯 Shutter Network keyper-quorum integration (3-line surface change scaffolded) |
+| **Indexer trust path** | ✅ Permissionless read replica of source-chain log; TEE sig supplied to relayer out-of-band | 🎯 Event payload widened to carry TEE sig inline — indexer becomes independent attestation |
+| **Key custody** | ⚠️ Single `.env` master + HKDF subkeys (dev-appropriate) | 🎯 AWS KMS / HashiCorp Vault + HSM-backed per-corpus partitions |
+
+Legend: ✅ shipped on mainnet today · ⚠️ roadmap gap, named and sized · 🎯 production target.
+
+Every shipped claim has a verification path; every non-shipped control is labeled roadmap. Full named-assumption list: [`THREAT-MODEL.md`](./THREAT-MODEL.md).
+
+---
+
+## §1 — Confidential-AI sub-theme coverage
+
+Meru's scope is **privacy-preserving protocols, cross-chain fragmentation solutions, and MEV-resistant infrastructure** for a confidential Web 4.0. One load-bearing primitive per sub-theme, each with an explicit v1-vs-production line.
+
+| Sub-theme | What's shipped on mainnet today | Where it lives | v2/v3 production target |
 |---|---|---|---|
 | **Privacy-preserving protocols** | AES-256-GCM encrypted corpora on 0G Storage · TEE-attested inference on 0G Compute via Phala dStack · ECDSA-signed bundles anchored on 0G Chain | `backend/src/storage/encryptUpload.ts` · `backend/src/inference/seal.ts` · `contracts/Provenant.sol` | Enclave-owned X25519 keys + DCAP browser verification + reproducible-build measurement registry |
 | **Cross-chain fragmentation** | Anchor on 0G Chain + re-attest the digest on Sepolia with the same configured signer identity (zero value crosses · no validator quorum · not a bridge) · permissionless JSON-RPC + WebSocket indexer | `contracts/ProvenantReader.sol` · `indexer/` | Multi-chain mirror to Base + Linea + Ethereum L1 · event payload widened so indexer can independently reconstruct TEE-attested truth |
@@ -39,11 +68,11 @@ Track 5 asks for **privacy-preserving protocols, cross-chain fragmentation solut
 
 The on-chain commit-reveal gate is what makes the v2 keyper swap safe — **the gate doesn't depend on who holds the key**. The 60s window is real today and survives the swap.
 
-Full sub-theme write-up: [`TRACK-5-COVERAGE.md`](./TRACK-5-COVERAGE.md).
+Full sub-theme write-up: [`TRACK-5-COVERAGE.md`](./TRACK-5-COVERAGE.md) (filename is a stable link reference — content is sub-theme-by-sub-theme coverage).
 
 ---
 
-## §2 — Current trust boundary (the section a sharp judge will look for)
+## §2 — Current trust boundary (the section a careful reviewer should read first)
 
 What you must trust **today**, in v1:
 
@@ -99,6 +128,8 @@ This is the **production-reference** diagram. Sections clearly mark which parts 
 
 Numbered edges 1️⃣–9️⃣ are the inference data flow. **Edge 9️⃣ is the demo punchline:** the regulator path that touches zero Meru infrastructure.
 
+> ⚠️ **Read first.** The diagram below is the **production-reference architecture** (the v3 destination). In **v1 today**, the Meru relay's data plane **decrypts encrypted intents** before forwarding plaintext to the TEE — the "bridge mode" trust boundary documented in §2. The legend's "transport-only · no plaintext access" describes the v2/v3 target, not current behaviour. The v1-vs-target gap is summarised in the *"Live today vs production roadmap"* table at the top of this README and detailed at §5.
+
 ```mermaid
 flowchart TB
     classDef userZone     fill:#DCFCE7,stroke:#16A34A,stroke-width:2.5px,color:#14532D
@@ -111,7 +142,7 @@ flowchart TB
 
     USER(["👤 USER BROWSER<br>Next.js · wagmi · viem<br>X25519 + AES-GCM in browser"]):::userZone
 
-    subgraph MERU ["🟡 MERU RELAY · transport only · no plaintext access"]
+    subgraph MERU ["🟡 MERU RELAY · v3 target: transport-only · v1 today: bridge mode (backend decrypts)"]
         direction LR
         CP["Control plane<br>auth · RBAC · workflow"]:::relayZone
         DP["Data plane<br>upload · inference · mirror · indexer workers"]:::relayZone
@@ -166,7 +197,7 @@ flowchart TB
 
 **How to read this in 30 seconds:**
 
-1. **Top-to-bottom is the inference path.** A user encrypts a question in their browser (green box at top), it flows through the Meru relay (amber, transport-only), reaches the 0G TEE primitives (emerald — this is where the cryptographic trust lives), and the answer is signed inside the enclave.
+1. **Top-to-bottom is the inference path.** A user encrypts a question in their browser (green box at top), it flows through the Meru relay (amber — v3 target is transport-only; in v1 today this layer decrypts the intent, see §2), reaches the 0G TEE primitives (emerald — this is where the cryptographic trust lives), and the answer is signed inside the enclave.
 2. **The signed bundle then anchors on-chain** (blue — 0G Chain via commit-reveal) and **mirrors cross-chain** (indigo — EVM mirror).
 3. **Two read-side surfaces** sit at the bottom: the indexer mesh (violet, permissionless) and the standalone verifier (pink, static HTML).
 4. **The pink double-arrow (edge 9️⃣)** is the punchline — a regulator goes from their browser straight to the verifier, queries 0G + EVM mirrors directly, and confirms a bundle without ever touching Meru's infrastructure.
@@ -185,8 +216,10 @@ The amber relay zone is what the buyer is asked to **not** trust. The green/emer
                      │   {ct, ephPub, iv}                        │   verify directly
                      ▼                                           │   (no Meru backend)
    ╔═════════════════════════════════════════════╗               │
-   ║  🚇  MERU RELAY · transport-only · no       ║               │
-   ║      plaintext access                       ║               │
+   ║  🚇  MERU RELAY                             ║               │
+   ║      v3 target: transport-only              ║               │
+   ║      v1 today:  bridge mode · backend       ║               │
+   ║                 decrypts intents (see §2)   ║               │
    ║  ┌───────────────────────────────────────┐  ║               │
    ║  │ Control plane (auth · RBAC · workflow │  ║               │
    ║  │ orchestration · signer governance)    │  ║               │
@@ -238,7 +271,7 @@ The amber relay zone is what the buyer is asked to **not** trust. The green/emer
 
 Color → trust posture key:
   🟢 sage    → cryptographically trusted (TEE + chains)
-  🟡 amber   → transport-only relay (no plaintext, no signing keys)
+  🟡 amber   → Meru relay (v3 target: transport-only · v1 today: bridge mode, see §2)
   🟣 purple  → permissionless reader infrastructure
   🩷 pink    → trust-neutral verifier (no infra in the loop at all)
 ```
@@ -373,7 +406,7 @@ Apple PCC is **closed-source, single-vendor, single-tenant**. Meru's distinguish
 
 ### §5.2 — Roadmap maturity matrix
 
-| Capability | v1 status (this submission) | v2 target | v3 target |
+| Capability | v1 status (today) | v2 target | v3 target |
 |---|---|---|---|
 | TEE attestation signer | Level-1 placeholder (deployer wallet) | Enclave generates X25519 keypair at boot via dStack KMS; pubkey attested via DCAP quote | Multi-attestation quorum (TDX + SEV-SNP) |
 | Encrypted intents | Bridge mode — backend decrypts before forwarding to TEE | Enclave-owned key + DCAP browser verification — backend becomes pure transport | Per-corpus HSM-backed isolation |
@@ -469,7 +502,7 @@ Meru uses **three load-bearing 0G layers** plus an iNFT-standard advertisement. 
 | **0G Chain (Aristotle, chain 16661)** | `contracts/Provenant.sol` | ERC-721 iNFT + `logInference(...)` + `commitInference` / `revealAndLogInference` MEV-resistance hooks. Live at [`0xA8296DfF…30C5`](https://chainscan.0g.ai/address/0xA8296DfF7C2faD1170e880d71aF92B2F201D30C5). |
 | **0G ecosystem alignment** | — | **ERC-7857 iNFT compatibility** advertised via `supportsInterface(0x78570001)` (full inheritance is v2 storage-layout work). Built against [0G's Sealed Inference launch (March 2026)](https://0g.ai/blog/0g-private-computer) and the [Phala × 0G partnership](https://phala.com/posts/phala-network-and-0g-partner-for-enhanced-confidential-ai-computing). |
 
-Innovation: Meru combines the three 0G primitives into a **single signed-bundle wire format** that is independently verifiable from on-chain data alone, with no Meru infrastructure required. The novelty isn't using each primitive — it's the **composition into an audit substrate** that survives the operator.
+Innovation: Meru composes the three 0G primitives into a **single signed-bundle wire format** that's independently re-derivable from on-chain artifacts plus the standalone verifier (precise trust path documented at §14 — today the indexer is a permissionless **read replica**; v2 widens the event payload so it becomes an independent attestation). The novelty isn't using each primitive — it's the **composition into an audit substrate** that survives the operator.
 
 ---
 
@@ -489,15 +522,17 @@ The chat UI in `frontend/` is a **reference application** — not the product. T
 
 ---
 
-## §9 — How this maps to the judging criteria
+## §9 — Evaluation summary
 
-| Criterion | How Meru lands |
+The five rows below collapse the project to the questions a careful reviewer (investor, enterprise buyer, partner, or contributor) tends to ask first.
+
+| Concern | How Meru lands |
 |---|---|
-| **0G Technical Integration Depth & Innovation** | Three load-bearing 0G layers (Storage + Compute + Chain) plus the ERC-7857 iNFT-standard advertisement. The **composition** into a signed-bundle wire format that is independently verifiable from on-chain data alone is the innovation. Sealed Inference is wired via the canonical SDK and verified through `processResponse` against the on-chain `teeSignerAddress`. |
-| **Technical Implementation & Completeness** | Provenant.sol live on 0G Aristotle mainnet at [`0xA8296DfF…30C5`](https://chainscan.0g.ai/address/0xA8296DfF7C2faD1170e880d71aF92B2F201D30C5); Sepolia mirror at the same address. 15 Hardhat contract tests passing; 5 backend MEV tests; Slither (49 informational, 0 high, 0 medium); both projects typecheck clean (TS strict). `npm run smoke` exercises the deployed contract end-to-end. |
-| **Product Value & Market Potential** | Buyer pain: every regulated AI deployment in 2026-27 needs tamper-evident provenance (EU AI Act Article 12, India DPDPA Rules 2025, RBI FREE-AI committee report — see [`docs/PRODUCTION-VISION.md`](./docs/PRODUCTION-VISION.md) Appendix for precise citations). 97% of AI-breach victims can't produce one ([IBM 2025](https://www.ibm.com/reports/data-breach)). Growth path: wedge today (regulated AI buyers in APAC FSI) → audit-substrate-as-a-service → multi-tenant SaaS in v3. |
-| **User Experience & Demo Quality** | Light-mode-first "AI notary" UI register, document-oriented (not "crypto-app"). Standalone verifier is one HTML file anyone can open. Demo punchline: pipe an inference from question → encrypted intent → TEE → 60s on-chain gate → reveal → Sepolia mirror → regulator opens verifier widget → ✓ — without ever touching Meru's backend. PipelineTracker UI ticks only on real backend signals (the contract-enforced 60s window), never on fake setInterval cadence. |
-| **Team Capability & Documentation** | Solo build, MIT-licensed, all artifacts open from day 1. Documentation is structured so judges can read the README → drop into [`docs/HACKATHON-MVP.md`](./docs/HACKATHON-MVP.md) for what's actually shipped → drop into [`docs/PRODUCTION-VISION.md`](./docs/PRODUCTION-VISION.md) for the production target → [`THREAT-MODEL.md`](./THREAT-MODEL.md) for named assumptions. Every shipped claim has a verification path; every non-shipped control is labeled roadmap. |
+| **0G integration depth + innovation** | Three load-bearing 0G layers (Storage + Compute + Chain) plus the ERC-7857 iNFT-standard advertisement. The **composition** into a signed-bundle wire format that's re-derivable from on-chain artifacts plus the standalone verifier (precise trust path at §14) is the innovation. Sealed Inference is wired via the canonical SDK and verified through `processResponse` against the on-chain `teeSignerAddress`. |
+| **Technical implementation + completeness** | Provenant.sol live on 0G Aristotle mainnet at [`0xA8296DfF…30C5`](https://chainscan.0g.ai/address/0xA8296DfF7C2faD1170e880d71aF92B2F201D30C5); Sepolia mirror at the same address. 15 Hardhat contract tests passing; 5 backend MEV tests; Slither (49 informational, 0 high, 0 medium); both projects typecheck clean (TS strict). `npm run smoke` exercises the deployed contract end-to-end. |
+| **Product value + market potential** | Buyer pain: every regulated AI deployment in 2026-27 needs tamper-evident provenance (EU AI Act Article 12, India DPDPA Rules 2025, RBI FREE-AI committee report — see [`docs/PRODUCTION-VISION.md`](./docs/PRODUCTION-VISION.md) Appendix for precise citations). 97% of AI-breach victims can't produce one ([IBM 2025](https://www.ibm.com/reports/data-breach)). Growth path: wedge today (regulated AI buyers in APAC FSI) → audit-substrate-as-a-service → multi-tenant SaaS in v3. |
+| **User experience + demo quality** | Light-mode-first "AI notary" UI register, document-oriented (not "crypto-app"). The standalone verifier is one HTML file anyone can open. Walk-through: an inference moves from question → encrypted intent → TEE → 60s on-chain gate → reveal → Sepolia mirror → a regulator opens the verifier widget → ✓ — without ever touching Meru's backend. The PipelineTracker UI ticks only on real backend signals (the contract-enforced 60s window), never on a fake setInterval cadence. |
+| **Code quality + documentation** | Solo build, MIT-licensed, all artifacts open from day 1. Documentation is structured so a reader can move from this README → [`docs/HACKATHON-MVP.md`](./docs/HACKATHON-MVP.md) for what's actually shipped → [`docs/PRODUCTION-VISION.md`](./docs/PRODUCTION-VISION.md) for the production target → [`THREAT-MODEL.md`](./THREAT-MODEL.md) for named assumptions. Every shipped claim has a verification path; every non-shipped control is labeled roadmap. |
 
 ---
 
@@ -658,9 +693,9 @@ It is **infrastructure**: a Sealed-Inference SDK, an audit-anchor protocol, a pe
 
 ## §16 — Documents (read in this order)
 
-1. **This README** — judges' first surface after the demo video.
-2. [`TRACK-5-COVERAGE.md`](./TRACK-5-COVERAGE.md) — sub-theme by sub-theme coverage statement.
-3. [`docs/HACKATHON-MVP.md`](./docs/HACKATHON-MVP.md) — what's actually shipped on mainnet today (v1).
+1. **This README** — project entry point.
+2. [`TRACK-5-COVERAGE.md`](./TRACK-5-COVERAGE.md) — sub-theme by sub-theme coverage (privacy / cross-chain / MEV).
+3. [`docs/HACKATHON-MVP.md`](./docs/HACKATHON-MVP.md) — MVP scope and what's actually shipped on mainnet today (v1).
 4. [`docs/PRODUCTION-VISION.md`](./docs/PRODUCTION-VISION.md) — production target (v3) with full architecture, sequence diagrams, 9-layer stack, roadmap, commercial path.
 5. [`THREAT-MODEL.md`](./THREAT-MODEL.md) — named assumptions + TEE side-channel response.
 6. [`docs/MERU-VS-PCC-VS-DSTACK.md`](./docs/MERU-VS-PCC-VS-DSTACK.md) — Apple PCC ↔ Meru ↔ Phala dStack mapping.
@@ -679,4 +714,4 @@ MIT licensed — see [LICENSE](./LICENSE). Contributing guide: [CONTRIBUTING.md]
 
 ---
 
-*Meru — confidentiality infrastructure for AI on 0G. Solo build for the 0G APAC Hackathon, Track 5: Privacy & Sovereign Infrastructure.*
+*Meru — confidentiality infrastructure for AI on 0G.*
