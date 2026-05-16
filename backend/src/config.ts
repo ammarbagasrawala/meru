@@ -14,6 +14,13 @@ const HEX_PK = /^(0x)?[0-9a-fA-F]{64}$/;
 
 // .passthrough() lets unrelated env vars (PATH, USER, etc.) flow through without rejection.
 // We only validate the fields *we* care about; everything else is ignored.
+// Railway / Render / Heroku set PORT dynamically. Promote it to BACKEND_PORT if
+// the deploy didn't set BACKEND_PORT explicitly — keeps the binding env-aware
+// without needing platform-specific overrides.
+if (!process.env.BACKEND_PORT && process.env.PORT) {
+  process.env.BACKEND_PORT = process.env.PORT;
+}
+
 const Schema = z.object({
   BACKEND_PORT: z.coerce.number().int().min(1).max(65535).default(8787),
   BACKEND_CORS_ORIGIN: z.string().url().default("http://localhost:3000"),
