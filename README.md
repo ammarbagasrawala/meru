@@ -6,6 +6,8 @@
 
 *The audit substrate for confidential AI on 0G — encrypted-at-rest corpora, TEE-attested inference, on-chain tamper-evident logs, and cross-chain readability without a bridge.*
 
+### ▶ [Watch the demo (YouTube)](https://www.youtube.com/watch?v=urw-I5T9wsE)
+
 > **`Live on 0G Aristotle mainnet · chain id 16661`** · **`MIT licensed`** · **`v1 shipped on mainnet — v2/v3 roadmap labelled, not hidden`**
 >
 > Solo build by [Ammar Bagasrawala](https://www.linkedin.com/in/ammarabagasrawala/) — ML engineer focused on the confidential-AI production gap.
@@ -25,7 +27,7 @@ Real proof first; demo polish second.
 | **Standalone verifier widget** | [`/verifier/index.html`](./verifier/index.html) — single static HTML file. Queries 0G + Sepolia directly via `eth_call`. **No Meru backend in the loop.** This is the punchline. |
 | **One-command mainnet smoke** | `cd backend && npm run smoke` — exercises the deployed contract end-to-end in <5 seconds. Last run: **8/8 green**. |
 | **Static analysis** | [Slither v0.11.5 report](./contracts/SLITHER-AUDIT.md) — **0 high, 0 medium** against Provenant code |
-| **Demo video (2:30)** | _Link pending — recording per [`docs/DEMO-FALLBACK.md`](./docs/DEMO-FALLBACK.md). Until then, the verifier widget + chainscan link above are the same proof, slower._ |
+| **📺 Demo video** | [Watch on YouTube ↗](https://www.youtube.com/watch?v=urw-I5T9wsE) — end-to-end walkthrough: cold-open · architecture · query + audit sequence diagrams · **live mainnet demo** (mint → ask → 60s on-chain gate → reveal → verifier ✓) · production roadmap · novelty |
 | **Live deployment** | _Vercel URL pending — run locally with `npm run dev` (see §13) for an identical instance_ |
 
 ---
