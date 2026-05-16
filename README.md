@@ -6,7 +6,7 @@
 
 *The audit substrate for confidential AI on 0G — encrypted-at-rest corpora, TEE-attested inference, on-chain tamper-evident logs, and cross-chain readability without a bridge.*
 
-### ▶ [Watch the demo (YouTube)](https://www.youtube.com/watch?v=urw-I5T9wsE)
+### ▶ [Watch the demo (YouTube)](https://www.youtube.com/watch?v=urw-I5T9wsE) · 🌐 [Try the live app](https://meru-omega.vercel.app)
 
 > **`Live on 0G Aristotle mainnet · chain id 16661`** · **`MIT licensed`** · **`v1 shipped on mainnet — v2/v3 roadmap labelled, not hidden`**
 >
@@ -28,7 +28,7 @@ Real proof first; demo polish second.
 | **One-command mainnet smoke** | `cd backend && npm run smoke` — exercises the deployed contract end-to-end in <5 seconds. Last run: **8/8 green**. |
 | **Static analysis** | [Slither v0.11.5 report](./contracts/SLITHER-AUDIT.md) — **0 high, 0 medium** against Provenant code |
 | **📺 Demo video** | [Watch on YouTube ↗](https://www.youtube.com/watch?v=urw-I5T9wsE) — end-to-end walkthrough: cold-open · architecture · query + audit sequence diagrams · **live mainnet demo** (mint → ask → 60s on-chain gate → reveal → verifier ✓) · production roadmap · novelty |
-| **Live deployment** | _Vercel URL pending — run locally with `npm run dev` (see §13) for an identical instance_ |
+| **🌐 Live deployment** | [meru-omega.vercel.app](https://meru-omega.vercel.app) — connect your wallet on 0G Aristotle, upload a document, ask a question, click "Verify independently ↗" for the ✓ frame. Backend on Railway. |
 
 ---
 
