@@ -20,7 +20,7 @@
 
 > Meru is the audit substrate for confidential AI on 0G: encrypted-at-rest corpora, TEE-attested inference, on-chain tamper-evident logs, and cross-chain readability — without a bridge.
 
-### Three sub-themes of Track 5, three load-bearing components
+### Three load-bearing components — one for each of the three thesis pillars
 
 - **Privacy-preserving protocols** → AES-256-GCM encrypted corpora on 0G Storage + TEE-attested inference on 0G Compute + on-chain signed-bundle audit log. *Defense-in-depth named explicitly:* [TEE.fail / WireTap (Oct 2025)](./THREAT-MODEL.md) — TDX is not infallible; revocation, reproducible builds, and multi-attestation are the v2 mitigations.
 - **Cross-chain fragmentation** → anchor on 0G Chain + re-attest the digest on Sepolia using the configured signer identity (no bridge, no validator quorum, no funds in flight) + permissionless JSON-RPC indexer anyone can run. *This is anchor + mirror, not a trust-free bridge — trust-free cross-chain proofing from destination-chain data alone is v2.*
@@ -50,12 +50,12 @@ What v1 **does not** claim:
 
 The full named-assumptions list lives in [THREAT-MODEL.md](./THREAT-MODEL.md).
 
-> **Track 5 sub-theme coverage statement:** [TRACK-5-COVERAGE.md](./TRACK-5-COVERAGE.md)
+> **Sub-theme coverage statement** (privacy / cross-chain / MEV): [TRACK-5-COVERAGE.md](./TRACK-5-COVERAGE.md)
 > **PCC ↔ Meru ↔ Phala dStack comparison:** [docs/MERU-VS-PCC-VS-DSTACK.md](./docs/MERU-VS-PCC-VS-DSTACK.md)
 > **Threat model + named assumptions:** [THREAT-MODEL.md](./THREAT-MODEL.md)
 > **Plain-English explainers:** [What Meru Solves](./docs/WHAT-MERU-SOLVES.md) · [Compliance Verification Flow](./docs/COMPLIANCE-VERIFICATION-FLOW.md) · [Why Meru](./docs/WHY-MERU.md)
 
-🏆 Built for the [0G APAC Hackathon — Track 5: Privacy & Sovereign Infrastructure](https://www.hackquest.io/hackathons/0G-APAC-Hackathon). MIT licensed. Solo 6-day build, all artifacts open from day 1.
+MIT licensed. All artifacts open from day 1.
 
 ---
 
@@ -77,7 +77,7 @@ The original deadline lever (EU AI Act Article 12, Aug 2026) was [pushed to Dec 
 | 2 | **Sealed-Inference-as-a-Service** | `backend/src/inference/seal.ts` + `storage/encryptUpload.ts` | A small TS SDK that drives 0G Storage + 0G Sealed Inference + 0G Chain together. AES-256-GCM at rest, HKDF per-corpus keys, ECDSA + EIP-712 signing. |
 | 3 | **Encrypted-Intents Pattern** | `frontend/src/lib/encryptQuery.ts` | Client-side X25519 → AES-GCM encryption of the query bound to the enclave's KEM key. Defends against *informational MEV* — the mempool sees only ciphertext. |
 | 4 | **Commit-Reveal Wrapper (Shutter-shaped)** | `backend/src/mev/shutter.ts` | Wraps `logInference(...)` calldata in a threshold-encrypted commit-reveal envelope. Production swap-in for the Shutter Network keyper API is documented inline. |
-| 5 | **Audit-Log Indexer** | `indexer/` (standalone package) | Permissionless Node.js service: JSON-RPC + REST + WebSocket feed of every Provenant event. Multi-destination relayer pushes events to any number of EVM chains. The Track-5 cross-chain fragmentation primitive. |
+| 5 | **Audit-Log Indexer** | `indexer/` (standalone package) | Permissionless Node.js service: JSON-RPC + REST + WebSocket feed of every Provenant event. Multi-destination relayer pushes events to any number of EVM chains. The cross-chain fragmentation primitive. |
 
 The chat UI in `frontend/` is a **reference application** that demonstrates these rails end-to-end — it is *not* the product. The product is the protocol: signed-bundle format + audit-anchor contract + indexer + verifier.
 
@@ -87,7 +87,7 @@ The chat UI in `frontend/` is a **reference application** that demonstrates thes
 
 ## What 0G primitives are used (eligibility-critical, top-of-doc)
 
-Per hackathon rule: *"At least one 0G component must be integrated into every valid submission. Projects that fail to meet this requirement may be disqualified or receive major score deductions."* Provenant uses **three load-bearing layers** plus an iNFT-standard advertisement:
+Meru uses **three load-bearing 0G layers** plus an iNFT-standard advertisement:
 
 | 0G layer | Provenant code path | Used for |
 |---|---|---|
@@ -100,15 +100,15 @@ Without each of these layers Provenant doesn't function: removing 0G Storage mea
 
 ---
 
-## Why Track 5 matters for enterprises (paste-ready for the deck)
+## Why this matters for enterprises
 
 By **December 2027** (full enforcement, delayed 7 May 2026 from the original 2 Aug 2026 — but ~50% of EU-deployed high-risk systems are already implementing now to avoid retroactive remediation), **EU AI Act Article 12** requires high-risk AI operators to produce *"automatic, tamper-evident, timestamped logs over the lifetime of the [high-risk AI] system, independently verifiable by national competent authorities"* — or face fines of **€15M or 3% of global turnover** ([source](https://artificialintelligenceact.eu/article/12/), [delay analysis](https://www.traverssmith.com/knowledge/knowledge-container/eu-agrees-to-delay-key-ai-act-compliance-deadlines/)). India's **RBI FREE-AI framework** demands the same — *"every decision, whether by a machine or human, should leave a trail for regulators to review."* **India DPDPA Rule 13(4)** (cross-border audit-trail restrictions for Significant Data Fiduciaries — MeitY-proposed compression to 13 Nov 2026; ₹250 crore penalty per Section 8(5)) is the load-bearing APAC deadline. MiCA, Korea VAUPA, HK HKMA, and Singapore MAS all converge on the same primitive: a multi-counterparty audit log that survives the system that produced it.
 
 Today, **97% of AI-breach victims can't produce one** ([IBM Cost of a Data Breach 2025](https://www.ibm.com/reports/data-breach)). H1 2025 AML penalties hit **US$1.23B (+417% YoY)**, with US$21.8B+ laundered via DEXs/bridges where cross-chain audit gaps exist ([Chainalysis 2025](https://www.chainalysis.com/blog/landscape-of-seizable-crypto-assets-2025/)). Provenant's permissionless indexer + Sepolia verifier mirror is the cheapest legally defensible architecture that satisfies regulators *and* preserves privacy — anchoring cryptographic digests on-chain while keeping payloads off-chain.
 
-## How Track 5 maps to what we shipped
+## How the three sub-themes map to what we shipped
 
-| Track 5 sub-theme | Provenant's coverage | Read more |
+| Sub-theme | Provenant's coverage | Read more |
 |---|---|---|
 | Privacy-preserving protocols | Provenant Attestation Format + Sealed-Inference SDK + encrypted-at-rest corpora + on-chain tamper-evident audit log + Battering-RAM defence-in-depth threat model | TRACK-5-COVERAGE.md §1 |
 | Cross-chain fragmentation solutions | Two layers: in-product anchor + mirror to Sepolia (`ProvenantReader.sol`) + the standalone `@provenant/indexer` package that exposes JSON-RPC / WebSocket / multi-destination relayer | TRACK-5-COVERAGE.md §2 |
@@ -388,4 +388,4 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md). Read [`TRACK-5-COVERAGE.md`](./TRACK-5
 ---
 
 *Provenant — confidentiality infrastructure for AI on 0G.*
-*Solo build · 6 days · 0G APAC Hackathon, Track 5.*
+*Solo build · 6 days.*
